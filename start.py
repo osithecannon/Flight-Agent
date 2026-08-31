@@ -1,12 +1,13 @@
 import os
 import subprocess
 import sys
+import time
 
 
 def main():
-  port = os.environ.get("PORT", "8000")
+  port = os.environ.get("PORT", "8080")
 
-  print("Starting FastAPI backend...")
+  print("Starting FastAPI backend on port 8001...")
   fastapi_process = subprocess.Popen([
       sys.executable,
       "-m",
@@ -15,11 +16,13 @@ def main():
       "--host",
       "127.0.0.1",
       "--port",
-      "8000",
+      "8001",
   ])
 
+  # Wait 3 seconds for FastAPI to fully initialize and bind to the port
+  time.sleep(3)
+
   print(f"Starting Streamlit frontend on port {port}...")
-  # Use sys.executable to run streamlit as a module (-m streamlit)
   streamlit_process = subprocess.Popen([
       sys.executable,
       "-m",
