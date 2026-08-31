@@ -2,65 +2,115 @@ import os
 import requests
 import streamlit as st
 
+# Set page configuration to wide/dark theme style
 st.set_page_config(
-    page_title="Flight & Stay Agent", page_icon="✈️", layout="centered"
+    page_title="Flight + Stay Agent", page_icon="✈️", layout="wide"
 )
 
-st.title("✈️ Groq-Powered Flight & Stay Agent")
-st.markdown("Search flights dynamically by location, dates, and class.")
+# Custom CSS to mimic the clean dark theme and amber search button
+st.markdown(
+    """
+    <style>
+    .stApp {
+        background-color: #0e1117;
+        color: #ffffff;
+    }
+    .agent-tag {
+        font-size: 11px;
+        letter-spacing: 2px;
+        color: #8b949e;
+        text-transform: uppercase;
+        font-weight: 600;
+        margin-bottom: 0px;
+    }
+    .agent-title {
+        font-size: 38px;
+        font-weight: 700;
+        color: #ffffff;
+        margin-top: 5px;
+        margin-bottom: 10px;
+    }
+    .agent-subtitle {
+        font-size: 14px;
+        color: #8b949e;
+        margin-bottom: 25px;
+        line-height: 1.5;
+    }
+    .stTextArea textarea {
+        background-color: #161b22 !important;
+        color: #ffffff !important;
+        border: 1px: solid #30363d !important;
+        border-radius: 8px !important;
+        font-size: 14px !important;
+    }
+    div.stButton > button {
+        background-color: #f2a900 !important;
+        color: #000000 !important;
+        font-weight: 600 !important;
+        border-radius: 6px !important;
+        padding: 0.5rem 1.5rem !important;
+        border: none !important;
+    }
+    div.stButton > button:hover {
+        background-color: #d99800 !important;
+        color: #000000 !important;
+    }
+    </style>
+""",
+    unsafe_allow_html=True,
+)
 
-# Permanently use the local background FastAPI worker endpoint (No sidebar box needed!)
+# Local FastAPI endpoint backend route
 api_url = "http://127.0.0.1:8001/plan"
 
-# Sidebar for structured search parameters
-st.sidebar.header("Flight Search Parameters")
-origin = st.sidebar.text_input("Origin Airport (e.g., LOS)", value="LOS")
-destination = st.sidebar.text_input("Destination Airport (e.g., LHR)", value="LHR")
-departure_date = st.sidebar.date_input("Departure Date")
-cabin = st.sidebar.selectbox(
-    "Cabin Class", ["economy", "premium_economy", "business", "first"]
-)
+# Main layout structure
+col1, col2 = st.columns([1.6, 1])
 
-use_sidebar_search = st.sidebar.checkbox("Use Structured Search Form", value=True)
+with col1:
+  st.markdown('<p class="agent-tag">FLIGHT + STAY AGENT</p>', unsafe_allow_html=True)
+  st.markdown(
+      '<h1 class="agent-title">Tell it where and when you’re free.</h1>',
+      unsafe_allow_html=True,
+  )
+  st.markdown(
+      '<p class="agent-subtitle">Describe the trip in your own words. It reads'
+      " your calendar, checks live fares and hotel rates, and reasons out its"
+      " best pick.</p>",
+      unsafe_allow_html=True,
+  )
 
-if "messages" not in st.session_state:
-  st.session_state.messages = []
+  # Text area prompt input matching the mockup placeholder style
+  user_prompt = st.text_area(
+      "Trip prompt",
+      placeholder=(
+          "e.g. Find me a flight LOS to LHR sometime between Sep 10–20, business"
+          " class, 4 nights, hotel 4 stars or better, budget around 800,000 NGN"
+      ),
+      height=120,
+      label_visibility="collapsed",
+  )
 
-for message in st.session_state.messages:
-  with st.chat_message(message["role"]):
-    st.markdown(message["content"])
+  if st.button("Search"):
+    if user_prompt.strip():
+      with st.spinner(
+          "Analyzing calendar, searching flights and finding hotels..."
+      ):
+        try:
+          payload = {"prompt": user_prompt}
+          response = requests.post(api_url, json=payload, timeout=60)
 
-trigger_search = False
-prompt = ""
+          if response.status_code == 200:
+            data = response.json()
+            agent_reply = data.get("response", str(data))
+            st.markdown("### Agent Recommendation")
+            st.success(agent_reply)
+          else:
+            st.error(f"Error {response.status_code}: {response.text}")
+        except Exception as e:
+          st.error(f"Failed to connect to backend agent: {e}")
+    else:
+      st.warning("Please enter a description for your trip first.")
 
-if use_sidebar_search:
-  if st.sidebar.button("Search Flights & Plan"):
-    prompt = f"Find a {cabin} flight from {origin} to {destination} on {departure_date}. Add it to my calendar."
-    trigger_search = True
-else:
-  prompt = st.chat_input("e.g., Find me a flight from Lagos to London next Monday")
-  if prompt:
-    trigger_search = True
-
-if trigger_search and prompt:
-  st.session_state.messages.append({"role": "user", "content": prompt})
-  with st.chat_message("user"):
-    st.markdown(prompt)
-
-  with st.chat_message("assistant"):
-    with st.spinner("Searching Duffel and talking to your calendar..."):
-      try:
-        payload = {"prompt": prompt}
-        response = requests.post(api_url, json=payload, timeout=60)
-
-        if response.status_code == 200:
-          data = response.json()
-          agent_reply = data.get("response", str(data))
-          st.markdown(agent_reply)
-          st.session_state.messages.append(
-              {"role": "assistant", "content": agent_reply}
-          )
-        else:
-          st.error(f"Error {response.status_code}: {response.text}")
-      except Exception as e:
-        st.error(f"Failed to connect to the agent endpoint. Details: {e}")
+with col2:
+  # Optional right column placeholder to keep spacing balanced like the screenshot
+  st.markdown("")
