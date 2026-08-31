@@ -15,7 +15,7 @@ def main():
       "--host",
       "127.0.0.1",
       "--port",
-      "8001",
+      "8000",
   ])
 
   print(f"Starting Streamlit frontend on port {port}...")
