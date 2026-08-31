@@ -71,3 +71,5 @@ if trigger_search and prompt:
                 st.error(
                     f"Failed to connect to the agent endpoint. Details: {e}"
                 )
+# Instead of your public Railway URL, point locally to the background worker
+api_url = "http://127.0.0.1:8001/plan"
