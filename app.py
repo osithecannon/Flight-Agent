@@ -39,7 +39,7 @@ st.markdown(
     .stTextArea textarea {
         background-color: #161b22 !important;
         color: #ffffff !important;
-        border: 1px: solid #30363d !important;
+        border: 1px solid #30363d !important;
         border-radius: 8px !important;
         font-size: 14px !important;
     }
@@ -60,7 +60,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Local FastAPI endpoint backend route
+# Local FastAPI background worker endpoint
 api_url = "http://127.0.0.1:8001/plan"
 
 # Main layout structure
@@ -79,12 +79,12 @@ with col1:
       unsafe_allow_html=True,
   )
 
-  # Text area prompt input matching the mockup placeholder style
+  # Text area prompt input
   user_prompt = st.text_area(
       "Trip prompt",
       placeholder=(
-          "e.g. Find me a flight LOS to LHR sometime between Sep 10–20, business"
-          " class, 4 nights, hotel 4 stars or better, budget around 800,000 NGN"
+          "e.g. Find me a flight from Lagos to Abuja between September 1 and"
+          " September 20"
       ),
       height=120,
       label_visibility="collapsed",
@@ -96,7 +96,16 @@ with col1:
           "Analyzing calendar, searching flights and finding hotels..."
       ):
         try:
-          payload = {"prompt": user_prompt}
+          # Payload structured to satisfy the TravelRequest backend schema
+          payload = {
+              "prompt": user_prompt,
+              "origin": "LOS",
+              "destination": "ABV",
+              "lat": 6.5244,
+              "lng": 3.3792,
+              "search_start": "2026-09-01",
+              "search_end": "2026-09-20",
+          }
           response = requests.post(api_url, json=payload, timeout=60)
 
           if response.status_code == 200:
@@ -112,5 +121,4 @@ with col1:
       st.warning("Please enter a description for your trip first.")
 
 with col2:
-  # Optional right column placeholder to keep spacing balanced like the screenshot
   st.markdown("")
