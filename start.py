@@ -6,7 +6,6 @@ import sys
 def main():
   port = os.environ.get("PORT", "8000")
 
-  # Start FastAPI in the background using uvicorn
   print("Starting FastAPI backend...")
   fastapi_process = subprocess.Popen([
       sys.executable,
@@ -19,9 +18,11 @@ def main():
       "8001",
   ])
 
-  # Start Streamlit on the main port required by Railway
   print(f"Starting Streamlit frontend on port {port}...")
+  # Use sys.executable to run streamlit as a module (-m streamlit)
   streamlit_process = subprocess.Popen([
+      sys.executable,
+      "-m",
       "streamlit",
       "run",
       "app.py",
