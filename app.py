@@ -22,7 +22,7 @@ origin = st.sidebar.text_input("Origin Airport (e.g., LOS)", value="LOS")
 destination = st.sidebar.text_input("Destination Airport (e.g., LHR)", value="LHR")
 departure_date = st.sidebar.date_input("Departure Date")
 cabin = st.sidebar.selectbox(
-    "Cabin Class", ["economy",="premium_economy", "business", "first"]
+    "Cabin Class", ["economy", "premium_economy", "business", "first"]
 )
 
 # Build a natural language prompt automatically from sidebar inputs, or allow manual chat
